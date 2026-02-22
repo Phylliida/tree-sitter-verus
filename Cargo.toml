@@ -1,6 +1,6 @@
 [package]
-name = "tree-sitter-rust"
-description = "Rust grammar for tree-sitter"
+name = "tree-sitter-verus"
+description = "Verus grammar for tree-sitter"
 version = "0.24.0"
 authors = [
   "Max Brunsfeld <maxbrunsfeld@gmail.com>",
@@ -8,9 +8,9 @@ authors = [
 ]
 license = "MIT"
 readme = "README.md"
-keywords = ["incremental", "parsing", "tree-sitter", "rust"]
+keywords = ["incremental", "parsing", "tree-sitter", "verus", "rust"]
 categories = ["parsing", "text-editors"]
-repository = "https://github.com/tree-sitter/tree-sitter-rust"
+repository = "https://github.com/verus-lang/verus"
 edition = "2021"
 autoexamples = false
 

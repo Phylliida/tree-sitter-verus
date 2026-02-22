@@ -1,5 +1,5 @@
 /**
- * @file Rust grammar for tree-sitter
+ * @file Verus grammar for tree-sitter
  * @author Maxim Sokolov <maxim0xff@gmail.com>
  * @author Max Brunsfeld <maxbrunsfeld@gmail.com>
  * @author Amaan Qureshi <amaanq12@gmail.com>
@@ -11,20 +11,21 @@
 
 // https://doc.rust-lang.org/reference/expressions.html#expression-precedence
 const PREC = {
-  call: 15,
-  field: 14,
-  try: 13,
-  unary: 12,
-  cast: 11,
-  multiplicative: 10,
-  additive: 9,
-  shift: 8,
-  bitand: 7,
-  bitxor: 6,
-  bitor: 5,
-  comparative: 4,
-  and: 3,
-  or: 2,
+  call: 16,
+  field: 15,
+  try: 14,
+  unary: 13,
+  cast: 12,
+  multiplicative: 11,
+  additive: 10,
+  shift: 9,
+  bitand: 8,
+  bitxor: 7,
+  bitor: 6,
+  comparative: 5,
+  and: 4,
+  or: 3,
+  implies: 2,    // Verus: ==> and implies
   range: 1,
   assign: 0,
   closure: -1,
@@ -53,12 +54,14 @@ const TOKEN_TREE_NON_SPECIAL_PUNCTUATION = [
   '>>', '+=', '-=', '*=', '/=', '%=', '^=', '&=', '|=', '<<=',
   '>>=', '=', '==', '!=', '>', '<', '>=', '<=', '@', '_', '.',
   '..', '...', '..=', ',', ';', ':', '::', '->', '=>', '#', '?',
+  // Verus operators
+  '===', '!==', '==>',
 ];
 
 const primitiveTypes = numericTypes.concat(['bool', 'str', 'char']);
 
 module.exports = grammar({
-  name: 'rust',
+  name: 'verus',
 
   extras: $ => [
     /\s/,
@@ -111,6 +114,16 @@ module.exports = grammar({
     [$.visibility_modifier],
     [$.visibility_modifier, $.scoped_identifier, $.scoped_type_identifier],
     [$.foreign_mod_item, $.function_modifiers],
+    // Verus-specific conflicts (spec clause trailing comma vs block expression ambiguity)
+    [$.invariant_clause],
+    [$.requires_clause],
+    [$.ensures_clause],
+    [$.recommends_clause],
+    [$.decreases_clause],
+    // assert forall body vs binary expression ambiguity
+    [$.binary_expression, $.assert_expression],
+    // assert(expr) by { } vs assert(expr) by (method) vs assert(expr) ambiguity
+    [$.assert_expression],
   ],
 
   word: $ => $.identifier,
@@ -155,6 +168,9 @@ module.exports = grammar({
       $.use_declaration,
       $.extern_crate_declaration,
       $.static_item,
+      // Verus declarations
+      $.broadcast_use_item,
+      $.broadcast_group,
     ),
 
     // Section - Macro definitions
@@ -242,6 +258,11 @@ module.exports = grammar({
       'as', 'async', 'await', 'break', 'const', 'continue', 'default', 'enum', 'fn', 'for', 'gen',
       'if', 'impl', 'let', 'loop', 'match', 'mod', 'pub', 'return', 'static', 'struct', 'trait',
       'type', 'union', 'unsafe', 'use', 'where', 'while',
+      // Verus keywords
+      'spec', 'proof', 'exec', 'open', 'closed', 'ghost', 'tracked',
+      'requires', 'ensures', 'recommends', 'invariant', 'decreases',
+      'forall', 'exists', 'choose', 'implies', 'broadcast', 'axiom', 'by',
+      'assert', 'assume',
     ),
 
     // Section - Declarations
@@ -440,8 +461,15 @@ module.exports = grammar({
       field('name', choice($.identifier, $.metavariable)),
       field('type_parameters', optional($.type_parameters)),
       field('parameters', $.parameters),
-      optional(seq('->', field('return_type', $._type))),
-      optional($.where_clause),
+      optional(seq('->', field('return_type', choice($.named_return_type, $._type)))),
+      // Verus spec clauses and where clause can appear in any order
+      repeat(choice(
+        $.requires_clause,
+        $.ensures_clause,
+        $.recommends_clause,
+        $.decreases_clause,
+        $.where_clause,
+      )),
       field('body', $.block),
     ),
 
@@ -452,8 +480,14 @@ module.exports = grammar({
       field('name', choice($.identifier, $.metavariable)),
       field('type_parameters', optional($.type_parameters)),
       field('parameters', $.parameters),
-      optional(seq('->', field('return_type', $._type))),
-      optional($.where_clause),
+      optional(seq('->', field('return_type', choice($.named_return_type, $._type)))),
+      repeat(choice(
+        $.requires_clause,
+        $.ensures_clause,
+        $.recommends_clause,
+        $.decreases_clause,
+        $.where_clause,
+      )),
       ';',
     ),
 
@@ -463,6 +497,16 @@ module.exports = grammar({
       'const',
       'unsafe',
       $.extern_modifier,
+      // Verus function mode keywords
+      'spec',
+      'proof',
+      'exec',
+      // Verus spec visibility modifiers
+      'open',
+      'closed',
+      // Verus broadcast modifiers
+      'broadcast',
+      'axiom',
     )),
 
     where_clause: $ => prec.right(seq(
@@ -599,6 +643,8 @@ module.exports = grammar({
     )),
 
     let_declaration: $ => seq(
+      // Verus: ghost/tracked qualifier before let
+      optional(choice('ghost', 'tracked')),
       'let',
       optional($.mutable_specifier),
       field('pattern', $._pattern),
@@ -690,6 +736,8 @@ module.exports = grammar({
     ),
 
     parameter: $ => seq(
+      // Verus: ghost/tracked qualifier on parameters
+      optional(choice('ghost', 'tracked')),
       optional($.mutable_specifier),
       field('pattern', choice(
         $._pattern,
@@ -719,6 +767,67 @@ module.exports = grammar({
           ')',
         )),
       ),
+    ),
+
+    // Section - Verus specification clauses
+
+    named_return_type: $ => prec(1, seq(
+      '(',
+      field('name', $.identifier),
+      ':',
+      field('type', $._type),
+      ')',
+    )),
+
+    requires_clause: $ => seq(
+      'requires',
+      sepBy1(',', $._expression),
+      optional(','),
+    ),
+
+    ensures_clause: $ => seq(
+      'ensures',
+      sepBy1(',', $._expression),
+      optional(','),
+    ),
+
+    recommends_clause: $ => seq(
+      'recommends',
+      sepBy1(',', $._expression),
+      optional(','),
+    ),
+
+    decreases_clause: $ => seq(
+      'decreases',
+      sepBy1(',', $._expression),
+      optional(','),
+    ),
+
+    invariant_clause: $ => seq(
+      'invariant',
+      sepBy1(',', $._expression),
+      optional(','),
+    ),
+
+    // Verus broadcast declarations
+
+    broadcast_use_item: $ => seq(
+      'broadcast',
+      'use',
+      sepBy1(',', $._path),
+      optional(','),
+      ';',
+    ),
+
+    broadcast_group: $ => seq(
+      optional($.visibility_modifier),
+      'broadcast',
+      'group',
+      field('name', $._type_identifier),
+      '{',
+      sepBy(',', $._path),
+      optional(','),
+      '}',
     ),
 
     // Section - Types
@@ -953,6 +1062,12 @@ module.exports = grammar({
       $.parenthesized_expression,
       $.struct_expression,
       $._expression_ending_with_block,
+      // Verus expressions
+      $.assert_expression,
+      $.assume_expression,
+      $.forall_expression,
+      $.exists_expression,
+      $.choose_expression,
     ),
 
     _expression: $ => choice(
@@ -972,6 +1087,8 @@ module.exports = grammar({
       $.loop_expression,
       $.for_expression,
       $.const_block,
+      // Verus
+      $.proof_block,
     ),
 
     macro_invocation: $ => seq(
@@ -1058,25 +1175,33 @@ module.exports = grammar({
     )),
 
     binary_expression: $ => {
-      const table = [
+      const leftAssocTable = [
         [PREC.and, '&&'],
         [PREC.or, '||'],
         [PREC.bitand, '&'],
         [PREC.bitor, '|'],
         [PREC.bitxor, '^'],
-        [PREC.comparative, choice('==', '!=', '<', '<=', '>', '>=')],
+        [PREC.comparative, choice('==', '!=', '<', '<=', '>', '>=', '===', '!==')],
         [PREC.shift, choice('<<', '>>')],
         [PREC.additive, choice('+', '-')],
         [PREC.multiplicative, choice('*', '/', '%')],
       ];
 
       // @ts-ignore
-      return choice(...table.map(([precedence, operator]) => prec.left(precedence, seq(
-        field('left', $._expression),
-        // @ts-ignore
-        field('operator', operator),
-        field('right', $._expression),
-      ))));
+      return choice(
+        ...leftAssocTable.map(([precedence, operator]) => prec.left(precedence, seq(
+          field('left', $._expression),
+          // @ts-ignore
+          field('operator', operator),
+          field('right', $._expression),
+        ))),
+        // Verus: right-associative implication operators
+        prec.right(PREC.implies, seq(
+          field('left', $._expression),
+          field('operator', choice('==>', 'implies')),
+          field('right', $._expression),
+        )),
+      );
     },
 
     assignment_expression: $ => prec.left(PREC.assign, seq(
@@ -1268,12 +1393,16 @@ module.exports = grammar({
       optional(seq($.label, ':')),
       'while',
       field('condition', $._condition),
+      // Verus: loop specifications
+      repeat(choice($.invariant_clause, $.decreases_clause)),
       field('body', $.block),
     ),
 
     loop_expression: $ => seq(
       optional(seq($.label, ':')),
       'loop',
+      // Verus: loop specifications
+      repeat(choice($.invariant_clause, $.decreases_clause)),
       field('body', $.block),
     ),
 
@@ -1283,6 +1412,8 @@ module.exports = grammar({
       field('pattern', $._pattern),
       'in',
       field('value', $._expression),
+      // Verus: loop specifications
+      repeat(choice($.invariant_clause, $.decreases_clause)),
       field('body', $.block),
     ),
 
@@ -1359,6 +1490,12 @@ module.exports = grammar({
       $.block,
     ),
 
+    // Verus: proof block (ghost code inside exec functions)
+    proof_block: $ => seq(
+      'proof',
+      $.block,
+    ),
+
     block: $ => seq(
       optional(seq($.label, ':')),
       '{',
@@ -1366,6 +1503,63 @@ module.exports = grammar({
       optional($._expression),
       '}',
     ),
+
+    // Section - Verus quantifier and spec expressions
+
+    // forall|params| body
+    forall_expression: $ => prec(PREC.closure, seq(
+      'forall',
+      field('parameters', $.closure_parameters),
+      field('body', $._expression),
+    )),
+
+    // exists|params| body
+    exists_expression: $ => prec(PREC.closure, seq(
+      'exists',
+      field('parameters', $.closure_parameters),
+      field('body', $._expression),
+    )),
+
+    // choose|params| body
+    choose_expression: $ => prec(PREC.closure, seq(
+      'choose',
+      field('parameters', $.closure_parameters),
+      field('body', $._expression),
+    )),
+
+    // assert(cond) [by { } | by (method)]
+    // assert forall|params| [hyp implies] cond [by { }]
+    assert_expression: $ => prec(2, seq(
+      'assert',
+      choice(
+        seq(
+          '(',
+          field('condition', $._expression),
+          ')',
+          optional(seq(
+            'by',
+            choice(
+              field('proof', $.block),
+              seq('(', field('method', $.identifier), ')'),
+            ),
+          )),
+        ),
+        seq(
+          'forall',
+          field('parameters', $.closure_parameters),
+          field('condition', $._expression),
+          optional(seq('by', field('proof', $.block))),
+        ),
+      ),
+    )),
+
+    // assume(cond)
+    assume_expression: $ => prec(2, seq(
+      'assume',
+      '(',
+      field('condition', $._expression),
+      ')',
+    )),
 
     // Section - Patterns
 

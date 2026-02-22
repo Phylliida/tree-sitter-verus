@@ -1,8 +1,8 @@
 {
-  "name": "tree-sitter-rust",
+  "name": "tree-sitter-verus",
   "version": "0.24.0",
-  "description": "Rust grammar for tree-sitter",
-  "repository": "https://github.com/tree-sitter/tree-sitter-rust",
+  "description": "Verus grammar for tree-sitter",
+  "repository": "https://github.com/verus-lang/verus",
   "license": "MIT",
   "author": {
     "name": "Maxim Sokolov",
@@ -24,6 +24,7 @@
     "incremental",
     "parsing",
     "tree-sitter",
+    "verus",
     "rust"
   ],
   "files": [
