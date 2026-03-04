@@ -94,6 +94,10 @@
       {
         "type": "use_declaration",
         "named": true
+      },
+      {
+        "type": "verus_block",
+        "named": true
       }
     ]
   },
@@ -5336,6 +5340,22 @@
     }
   },
   {
+    "type": "verus_block",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "declaration_list",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "visibility_modifier",
     "named": true,
     "fields": {},
@@ -6088,6 +6108,10 @@
   },
   {
     "type": "use",
+    "named": false
+  },
+  {
+    "type": "verus",
     "named": false
   },
   {

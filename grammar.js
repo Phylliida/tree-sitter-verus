@@ -171,6 +171,7 @@ module.exports = grammar({
       // Verus declarations
       $.broadcast_use_item,
       $.broadcast_group,
+      $.verus_block,
     ),
 
     // Section - Macro definitions
@@ -1089,6 +1090,13 @@ module.exports = grammar({
       $.const_block,
       // Verus
       $.proof_block,
+    ),
+
+    // Verus: verus! { ... } blocks parse their body as structured declarations
+    verus_block: $ => seq(
+      'verus',
+      '!',
+      field('body', $.declaration_list),
     ),
 
     macro_invocation: $ => seq(
