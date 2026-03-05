@@ -184,7 +184,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c4013970217383f67b18aef68f6fb2e8d409bc5755227092d32efb0422ba24b8"
 
 [[package]]
-name = "tree-sitter-rust"
+name = "tree-sitter-verus"
 version = "0.24.0"
 dependencies = [
  "cc",

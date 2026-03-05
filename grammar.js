@@ -124,8 +124,8 @@ module.exports = grammar({
     [$.decreases_clause],
     // assert forall body vs binary expression ambiguity
     [$.binary_expression, $.assert_expression],
-    // assert(expr) by { } vs assert(expr) by (method) vs assert(expr) ambiguity
-    [$.assert_expression],
+    // assert(expr)/forall shared prefix between block and non-block variants
+    [$.assert_expression, $._assert_by_expression],
   ],
 
   word: $ => $.identifier,
@@ -1092,6 +1092,7 @@ module.exports = grammar({
       $.const_block,
       // Verus
       $.proof_block,
+      alias($._assert_by_expression, $.assert_expression),
     ),
 
     // Verus: verus! { ... } blocks parse their body as structured declarations
@@ -1538,8 +1539,9 @@ module.exports = grammar({
       field('body', $._expression),
     )),
 
-    // assert(cond) [by { } | by (method)]
-    // assert forall|params| [hyp implies] cond [by { }]
+    // assert(cond) [by (method)]
+    // assert forall|params| [hyp implies] cond
+    // Non-block-ending variants (need ; in expression_statement)
     assert_expression: $ => prec(2, seq(
       'assert',
       choice(
@@ -1547,21 +1549,35 @@ module.exports = grammar({
           '(',
           field('condition', $._expression),
           ')',
-          optional(seq(
-            'by',
-            choice(
-              field('proof', $.block),
-              seq('(', field('method', $.identifier), ')'),
-            ),
-          )),
+          optional(seq('by', '(', field('method', $.identifier), ')')),
         ),
         seq(
           'forall',
           field('parameters', $.closure_parameters),
           field('condition', $._expression),
-          optional(seq('by', field('proof', $.block))),
         ),
       ),
+    )),
+
+    // assert(cond) by { proof }
+    // assert forall|params| [hyp implies] cond by { proof }
+    // Block-ending variants (no ; needed in expression_statement)
+    _assert_by_expression: $ => prec(2, seq(
+      'assert',
+      choice(
+        seq(
+          '(',
+          field('condition', $._expression),
+          ')',
+        ),
+        seq(
+          'forall',
+          field('parameters', $.closure_parameters),
+          field('condition', $._expression),
+        ),
+      ),
+      'by',
+      field('proof', $.block),
     )),
 
     // assume(cond)
