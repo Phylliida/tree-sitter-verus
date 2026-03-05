@@ -46,6 +46,8 @@ const numericTypes = [
   'usize',
   'f32',
   'f64',
+  'int',
+  'nat',
 ];
 
 // https://doc.rust-lang.org/reference/tokens.html#punctuation
@@ -1271,6 +1273,7 @@ module.exports = grammar({
 
     parenthesized_expression: $ => seq(
       '(',
+      repeat($.attribute_item),
       $._expression,
       ')',
     ),
