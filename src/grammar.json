@@ -2409,6 +2409,13 @@
       "type": "SEQ",
       "members": [
         {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "attribute_item"
+          }
+        },
+        {
           "type": "CHOICE",
           "members": [
             {
@@ -4564,8 +4571,17 @@
       "type": "SEQ",
       "members": [
         {
-          "type": "STRING",
-          "value": "invariant"
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "invariant"
+            },
+            {
+              "type": "STRING",
+              "value": "invariant_except_break"
+            }
+          ]
         },
         {
           "type": "SEQ",
@@ -10852,6 +10868,14 @@
     [
       "binary_expression",
       "assert_expression"
+    ],
+    [
+      "_statement",
+      "function_item"
+    ],
+    [
+      "declaration_list",
+      "function_item"
     ],
     [
       "assert_expression",

@@ -13,4 +13,4 @@ const TSLanguage *tree_sitter_rust(void);
 }
 #endif
 
-#endif // TREE_SITTER_RUST_H_
+#endif //  TREE_SITTER_RUST_H_

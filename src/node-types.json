@@ -2418,6 +2418,10 @@
       "required": false,
       "types": [
         {
+          "type": "attribute_item",
+          "named": true
+        },
+        {
           "type": "decreases_clause",
           "named": true
         },
@@ -5936,6 +5940,10 @@
   },
   {
     "type": "invariant",
+    "named": false
+  },
+  {
+    "type": "invariant_except_break",
     "named": false
   },
   {

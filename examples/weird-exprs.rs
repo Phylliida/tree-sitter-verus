@@ -18,7 +18,7 @@ use std::cell::Cell;
 use std::mem::swap;
 use std::ops::Deref;
 
-// Just a grab bag of stuff that you wouldn't want to actually write.
+//  Just a grab bag of stuff that you wouldn't want to actually write.
 
 fn strange() -> bool { let _x: bool = return true; }
 

@@ -375,9 +375,9 @@ extern "C" fn printf(
 ) {}
 
 pub unsafe extern "C" fn c_variadic_no_use(fmt: *const i8, mut ap: ...) -> i32 {
-    // CHECK: call void @llvm.va_start
+    //  CHECK: call void @llvm.va_start
     vprintf(fmt, ap.as_va_list())
-    // CHECK: call void @llvm.va_end
+    //  CHECK: call void @llvm.va_end
 }
 
 --------------------------------------------------------------------------------
@@ -1427,7 +1427,7 @@ foo(#[bar(some tokens are special in other contexts: $/';()*()+.)] x);
 Derive macro helper attributes
 ================================================================================
 
-// Example from https://github.com/dtolnay/thiserror/blob/21c26903e29cb92ba1a7ff11e82ae2001646b60d/README.md
+//  Example from https://github.com/dtolnay/thiserror/blob/21c26903e29cb92ba1a7ff11e82ae2001646b60d/README.md
 
 use thiserror::Error;
 
@@ -1751,7 +1751,7 @@ Impls with default functions
 
 impl Foo {
   const default fn bar() -> i32 {
-    // Make 'default' still works as an identifier
+    //  Make 'default' still works as an identifier
     default.bar();
   }
 }

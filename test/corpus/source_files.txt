@@ -33,11 +33,11 @@ Nested block comments
 
 /* /* double nested */ */
 
-// ---
+//  ---
 
 /*/*/* triple nested */*/*/
 
-// ---
+//  ---
 
 /****
   /****
@@ -46,7 +46,7 @@ Nested block comments
   ****/
 ****/
 
-// ---
+//  ---
 
 ----
 
@@ -62,9 +62,9 @@ Nested block comments
 Line comments
 ============================================
 
-// Comment
+//  Comment
 
-/// Outer line doc comment
+///  Outer line doc comment
 
 //! Inner line doc comment
 
@@ -85,10 +85,10 @@ Line doc comments
 //!  - Inner line doc
 //!! - Still an inner line doc (but with a bang at the beginning)
 
-//   - Only a comment
-///  - Outer line doc (exactly 3 slashes)
+//    - Only a comment
+///   - Outer line doc (exactly 3 slashes)
 ///
-//// - Only a comment
+////  - Only a comment
 
 ---
 
@@ -164,7 +164,7 @@ Comments degenerate cases
 //
 
 ///
-let x; // <- immediate item after an empty line doc comment
+let x; //  <- immediate item after an empty line doc comment
 
 /**/
 

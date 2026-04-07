@@ -133,7 +133,7 @@ static inline bool process_float_literal(TSLexer *lexer) {
         has_fraction = true;
         advance(lexer);
         if (iswalpha(lexer->lookahead)) {
-            // The dot is followed by a letter: 1.max(2) => not a float but an integer
+            //  The dot is followed by a letter: 1.max(2) => not a float but an integer
             return false;
         }
 
@@ -191,8 +191,8 @@ static inline bool process_line_doc_content(TSLexer *lexer) {
             return true;
         }
         if (lexer->lookahead == '\n') {
-            // Include the newline in the doc content node.
-            // Line endings are useful for markdown injection.
+            //  Include the newline in the doc content node.
+            //  Line endings are useful for markdown injection.
             advance(lexer);
             return true;
         }
@@ -245,12 +245,12 @@ static inline void process_continuing(BlockCommentProcessing *processing, char c
 
 static inline bool process_block_comment(TSLexer *lexer, const bool *valid_symbols) {
     char first = (char)lexer->lookahead;
-    // The first character is stored so we can safely advance inside
-    // these if blocks. However, because we only store one, we can only
-    // safely advance 1 time. Since there's a chance that an advance could
-    // happen in one state, we must advance in all states to ensure that
-    // the program ends up in a sane state prior to processing the block
-    // comment if need be.
+    //  The first character is stored so we can safely advance inside
+    //  these if blocks. However, because we only store one, we can only
+    //  safely advance 1 time. Since there's a chance that an advance could
+    //  happen in one state, we must advance in all states to ensure that
+    //  the program ends up in a sane state prior to processing the block
+    //  comment if need be.
     if (valid_symbols[BLOCK_INNER_DOC_MARKER] && first == '!') {
         lexer->result_symbol = BLOCK_INNER_DOC_MARKER;
         advance(lexer);
@@ -259,12 +259,12 @@ static inline bool process_block_comment(TSLexer *lexer, const bool *valid_symbo
     if (valid_symbols[BLOCK_OUTER_DOC_MARKER] && first == '*') {
         advance(lexer);
         lexer->mark_end(lexer);
-        // If the next token is a / that means that it's an empty block comment.
+        //  If the next token is a / that means that it's an empty block comment.
         if (lexer->lookahead == '/') {
             return false;
         }
-        // If the next token is a * that means that this isn't a BLOCK_OUTER_DOC_MARKER
-        // as BLOCK_OUTER_DOC_MARKER's only have 2 * not 3 or more.
+        //  If the next token is a * that means that this isn't a BLOCK_OUTER_DOC_MARKER
+        //  as BLOCK_OUTER_DOC_MARKER's only have 2 * not 3 or more.
         if (lexer->lookahead != '*') {
             lexer->result_symbol = BLOCK_OUTER_DOC_MARKER;
             return true;
@@ -275,13 +275,13 @@ static inline bool process_block_comment(TSLexer *lexer, const bool *valid_symbo
 
     if (valid_symbols[BLOCK_COMMENT_CONTENT]) {
         BlockCommentProcessing processing = {Continuing, 1};
-        // Manually set the current state based on the first character
+        //  Manually set the current state based on the first character
         switch (first) {
             case '*':
                 processing.state = LeftAsterisk;
                 if (lexer->lookahead == '/') {
-                    // This case can happen in an empty doc block comment
-                    // like /*!*/. The comment has no contents, so bail.
+                    //  This case can happen in an empty doc block comment
+                    //  like /*!*/. The comment has no contents, so bail.
                     return false;
                 }
                 break;
@@ -293,17 +293,17 @@ static inline bool process_block_comment(TSLexer *lexer, const bool *valid_symbo
                 break;
         }
 
-        // For the purposes of actually parsing rust code, this
-        // is incorrect as it considers an unterminated block comment
-        // to be an error. However, for the purposes of syntax highlighting
-        // this should be considered successful as otherwise you are not able
-        // to syntax highlight a block of code prior to closing the
-        // block comment
+        //  For the purposes of actually parsing rust code, this
+        //  is incorrect as it considers an unterminated block comment
+        //  to be an error. However, for the purposes of syntax highlighting
+        //  this should be considered successful as otherwise you are not able
+        //  to syntax highlight a block of code prior to closing the
+        //  block comment
         while (!lexer->eof(lexer) && processing.nestingDepth != 0) {
-            // Set first to the current lookahead as that is the second character
-            // as we force an advance in the above code when we are checking if we
-            // need to handle a block comment inner or outer doc comment signifier
-            // node
+            //  Set first to the current lookahead as that is the second character
+            //  as we force an advance in the above code when we are checking if we
+            //  need to handle a block comment inner or outer doc comment signifier
+            //  node
             first = (char)lexer->lookahead;
             switch (processing.state) {
                 case LeftForwardSlash:
@@ -332,10 +332,10 @@ static inline bool process_block_comment(TSLexer *lexer, const bool *valid_symbo
 }
 
 bool tree_sitter_verus_external_scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbols) {
-    // The documentation states that if the lexical analysis fails for some reason
-    // they will mark every state as valid and pass it to the external scanner
-    // However, we can't do anything to help them recover in that case so we
-    // should just fail.
+    //  The documentation states that if the lexical analysis fails for some reason
+    //  they will mark every state as valid and pass it to the external scanner
+    //  However, we can't do anything to help them recover in that case so we
+    //  should just fail.
     /*
       link: https://tree-sitter.github.io/tree-sitter/creating-parsers#external-scanners
       If a syntax error is encountered during regular parsing, Tree-sitter’s

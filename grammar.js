@@ -124,6 +124,9 @@ module.exports = grammar({
     [$.decreases_clause],
     // assert forall body vs binary expression ambiguity
     [$.binary_expression, $.assert_expression],
+    // attribute_item can precede function_item or stand alone
+    [$._statement, $.function_item],
+    [$.declaration_list, $.function_item],
     // assert(expr)/forall shared prefix between block and non-block variants
     [$.assert_expression, $._assert_by_expression],
   ],
@@ -458,6 +461,7 @@ module.exports = grammar({
     ),
 
     function_item: $ => seq(
+      repeat($.attribute_item),
       optional($.visibility_modifier),
       optional($.function_modifiers),
       'fn',
@@ -807,7 +811,7 @@ module.exports = grammar({
     ),
 
     invariant_clause: $ => seq(
-      'invariant',
+      choice('invariant', 'invariant_except_break'),
       sepBy1(',', $._expression),
       optional(','),
     ),
