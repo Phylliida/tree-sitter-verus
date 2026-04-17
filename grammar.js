@@ -60,6 +60,10 @@ const TOKEN_TREE_NON_SPECIAL_PUNCTUATION = [
   '===', '!==', '==>', '<==>', '=~=', '=~~=', '&&&', '|||',
 ];
 
+// Same as TOKEN_TREE_NON_SPECIAL_PUNCTUATION but without ';'
+// Used for assert-by-requires opaque parsing where ';' terminates the clause
+const TOKEN_TREE_PUNCT_NO_SEMI = TOKEN_TREE_NON_SPECIAL_PUNCTUATION.filter(p => p !== ';');
+
 const primitiveTypes = numericTypes.concat(['bool', 'str', 'char']);
 
 module.exports = grammar({
@@ -1626,13 +1630,27 @@ module.exports = grammar({
       repeat1($._assert_by_requires_token),
     )),
 
+    // Like _non_special_token but excludes ';' so the requires clause stops at ';'
     _assert_by_requires_token: $ => choice(
       // Balanced parentheses
       seq('(', repeat($._assert_by_requires_token), ')'),
       // Balanced brackets
       seq('[', repeat($._assert_by_requires_token), ']'),
-      // Any non-delimiter, non-brace, non-semicolon token (includes ',')
-      $._non_special_token,
+      // Balanced braces (for if/match expressions within requires)
+      seq('{', repeat($._assert_by_requires_token), '}'),
+      // All token types that can appear in requires expressions (same as _non_special_token minus ';')
+      $._literal, $.identifier, $.mutable_specifier, $.self, $.super, $.crate,
+      alias(choice(...primitiveTypes), $.primitive_type),
+      prec.right(repeat1(choice(...TOKEN_TREE_PUNCT_NO_SEMI))),
+      '\'',
+      'as', 'async', 'await', 'break', 'const', 'continue', 'default', 'enum', 'fn', 'for', 'gen',
+      'if', 'impl', 'let', 'loop', 'match', 'mod', 'pub', 'return', 'static', 'struct', 'trait',
+      'type', 'union', 'unsafe', 'use', 'where', 'while',
+      // Verus keywords
+      'spec', 'proof', 'exec', 'open', 'closed', 'ghost', 'tracked',
+      'requires', 'ensures', 'recommends', 'invariant', 'decreases',
+      'forall', 'exists', 'choose', 'implies', 'broadcast', 'axiom', 'by',
+      'assert', 'assume',
     ),
 
     // assume(cond)

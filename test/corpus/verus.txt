@@ -434,8 +434,7 @@ fn example(x: int, y: int) {
           (identifier)
           (integer_literal)
           (identifier)
-          (integer_literal)
-          (block))))))
+          (integer_literal))))))
 
 ================================================================================
 Assert by solver no body
@@ -497,7 +496,8 @@ fn example(x: int, y: int) {
           (identifier)
           (integer_literal)
           (identifier)
-          (integer_literal))))))
+          (integer_literal)))
+      (empty_statement))))
 
 ================================================================================
 Assert by solver with body no requires
