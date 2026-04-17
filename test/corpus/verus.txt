@@ -1,0 +1,1751 @@
+================================================================================
+Spec function
+================================================================================
+
+spec fn abs(n: int) -> int {
+    if n < 0 { -n } else { n }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (primitive_type)
+    (block
+      (expression_statement
+        (if_expression
+          (binary_expression
+            (identifier)
+            (integer_literal))
+          (block
+            (unary_expression
+              (identifier)))
+          (else_clause
+            (block
+              (identifier))))))))
+
+================================================================================
+Open spec function
+================================================================================
+
+pub open spec fn total(s: Seq<int>) -> int {
+    0
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (visibility_modifier)
+    (function_modifiers)
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (generic_type
+          (type_identifier)
+          (type_arguments
+            (primitive_type)))))
+    (primitive_type)
+    (block
+      (integer_literal))))
+
+================================================================================
+Proof function with requires/ensures
+================================================================================
+
+proof fn lemma_add(x: int, y: int)
+    requires
+        x > 0,
+        y > 0,
+    ensures
+        x + y > 0,
+{
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (primitive_type))
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (requires_clause
+      (binary_expression
+        (identifier)
+        (integer_literal))
+      (binary_expression
+        (identifier)
+        (integer_literal)))
+    (ensures_clause
+      (binary_expression
+        (binary_expression
+          (identifier)
+          (identifier))
+        (integer_literal)))
+    (block)))
+
+================================================================================
+Named return type
+================================================================================
+
+fn add_one(x: u32) -> (result: u32)
+    requires x < 0xFFFFFFFF,
+    ensures result == x + 1,
+{
+    x + 1
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (named_return_type
+      (identifier)
+      (primitive_type))
+    (requires_clause
+      (binary_expression
+        (identifier)
+        (integer_literal)))
+    (ensures_clause
+      (binary_expression
+        (identifier)
+        (binary_expression
+          (identifier)
+          (integer_literal))))
+    (block
+      (binary_expression
+        (identifier)
+        (integer_literal)))))
+
+================================================================================
+Decreases clause
+================================================================================
+
+spec fn fib(n: nat) -> nat
+    decreases n,
+{
+    if n <= 1 { n } else { fib(n - 1) + fib(n - 2) }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (primitive_type)
+    (decreases_clause
+      (identifier))
+    (block
+      (expression_statement
+        (if_expression
+          (binary_expression
+            (identifier)
+            (integer_literal))
+          (block
+            (identifier))
+          (else_clause
+            (block
+              (binary_expression
+                (call_expression
+                  (identifier)
+                  (arguments
+                    (binary_expression
+                      (identifier)
+                      (integer_literal))))
+                (call_expression
+                  (identifier)
+                  (arguments
+                    (binary_expression
+                      (identifier)
+                      (integer_literal))))))))))))
+
+================================================================================
+Let ghost binding
+================================================================================
+
+fn example(v: Vec<u32>) {
+    let ghost len = v.len();
+    let ghost mut counter = 0;
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (generic_type
+          (type_identifier)
+          (type_arguments
+            (primitive_type)))))
+    (block
+      (let_declaration
+        (identifier)
+        (call_expression
+          (field_expression
+            (identifier)
+            (field_identifier))
+          (arguments)))
+      (let_declaration
+        (mutable_specifier)
+        (identifier)
+        (integer_literal)))))
+
+================================================================================
+Let tracked binding
+================================================================================
+
+fn example() {
+    let tracked x = 42;
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (let_declaration
+        (identifier)
+        (integer_literal)))))
+
+================================================================================
+View expression (@)
+================================================================================
+
+fn example(v: &Vec<u32>) {
+    let ghost len = v@.len();
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (reference_type
+          (generic_type
+            (type_identifier)
+            (type_arguments
+              (primitive_type))))))
+    (block
+      (let_declaration
+        (identifier)
+        (call_expression
+          (field_expression
+            (view_expression
+              (identifier))
+            (field_identifier))
+          (arguments))))))
+
+================================================================================
+View expression with indexing
+================================================================================
+
+fn example(v: &Vec<u32>) {
+    let ghost x = v@[0];
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (reference_type
+          (generic_type
+            (type_identifier)
+            (type_arguments
+              (primitive_type))))))
+    (block
+      (let_declaration
+        (identifier)
+        (index_expression
+          (view_expression
+            (identifier))
+          (integer_literal))))))
+
+================================================================================
+View expression with subrange
+================================================================================
+
+fn example(a: &[u32], off: usize, n: usize) {
+    let ghost sub = a@.subrange(off as int, (off + n) as int);
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (reference_type
+          (array_type
+            (primitive_type))))
+      (parameter
+        (identifier)
+        (primitive_type))
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (block
+      (let_declaration
+        (identifier)
+        (call_expression
+          (field_expression
+            (view_expression
+              (identifier))
+            (field_identifier))
+          (arguments
+            (type_cast_expression
+              (identifier)
+              (primitive_type))
+            (type_cast_expression
+              (parenthesized_expression
+                (binary_expression
+                  (identifier)
+                  (identifier)))
+              (primitive_type))))))))
+
+================================================================================
+Proof block
+================================================================================
+
+fn example() {
+    proof {
+        assert(1 + 1 == 2);
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (expression_statement
+        (proof_block
+          (block
+            (expression_statement
+              (assert_expression
+                (binary_expression
+                  (binary_expression
+                    (integer_literal)
+                    (integer_literal))
+                  (integer_literal))))))))))
+
+================================================================================
+Assert by block
+================================================================================
+
+fn example(x: int) {
+    assert(x > 0) by {
+        assume(x > 0);
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (block
+      (expression_statement
+        (assert_expression
+          (binary_expression
+            (identifier)
+            (integer_literal))
+          (block
+            (expression_statement
+              (assume_expression
+                (binary_expression
+                  (identifier)
+                  (integer_literal))))))))))
+
+================================================================================
+Assert by nonlinear_arith with requires
+================================================================================
+
+fn example(x: int, y: int) {
+    assert(x * y > 0) by(nonlinear_arith)
+        requires x > 0, y > 0,
+    {
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (primitive_type))
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (block
+      (expression_statement
+        (assert_expression
+          (binary_expression
+            (binary_expression
+              (identifier)
+              (identifier))
+            (integer_literal))
+          (identifier)
+          (identifier)
+          (integer_literal)
+          (identifier)
+          (integer_literal)
+          (block))))))
+
+================================================================================
+Assert by solver no body
+================================================================================
+
+fn example(x: u32) {
+    assert(x & 1 == 0) by(bit_vector);
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (block
+      (expression_statement
+        (assert_expression
+          (binary_expression
+            (binary_expression
+              (identifier)
+              (integer_literal))
+            (integer_literal))
+          (identifier))))))
+
+================================================================================
+Assert by solver requires no body
+================================================================================
+
+fn example(x: int, y: int) {
+    assert(x * y >= 0) by(nonlinear_arith)
+        requires x >= 0, y >= 0;
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (primitive_type))
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (block
+      (expression_statement
+        (assert_expression
+          (binary_expression
+            (binary_expression
+              (identifier)
+              (identifier))
+            (integer_literal))
+          (identifier)
+          (identifier)
+          (integer_literal)
+          (identifier)
+          (integer_literal))))))
+
+================================================================================
+Assert by solver with body no requires
+================================================================================
+
+fn example(x: int) {
+    assert(x > 0) by(nonlinear_arith) {
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (block
+      (expression_statement
+        (assert_expression
+          (binary_expression
+            (identifier)
+            (integer_literal))
+          (identifier)
+          (block))))))
+
+================================================================================
+Assert forall with trigger
+================================================================================
+
+fn example(s: Seq<int>) {
+    assert forall |i: int| 0 <= i < s.len() implies #[trigger] s[i] > 0
+    by {
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (generic_type
+          (type_identifier)
+          (type_arguments
+            (primitive_type)))))
+    (block
+      (expression_statement
+        (assert_expression
+          (closure_parameters
+            (parameter
+              (identifier)
+              (primitive_type)))
+          (binary_expression
+            (binary_expression
+              (binary_expression
+                (integer_literal)
+                (identifier))
+              (call_expression
+                (field_expression
+                  (identifier)
+                  (field_identifier))
+                (arguments)))
+            (attributed_expression
+              (attribute_item
+                (attribute
+                  (identifier)))
+              (binary_expression
+                (index_expression
+                  (identifier)
+                  (identifier))
+                (integer_literal))))
+          (block))))))
+
+================================================================================
+Forall expression
+================================================================================
+
+spec fn all_positive(s: Seq<int>) -> bool {
+    forall |i: int| 0 <= i < s.len() ==> s[i] > 0
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (generic_type
+          (type_identifier)
+          (type_arguments
+            (primitive_type)))))
+    (primitive_type)
+    (block
+      (forall_expression
+        (closure_parameters
+          (parameter
+            (identifier)
+            (primitive_type)))
+        (binary_expression
+          (binary_expression
+            (binary_expression
+              (integer_literal)
+              (identifier))
+            (call_expression
+              (field_expression
+                (identifier)
+                (field_identifier))
+              (arguments)))
+          (binary_expression
+            (index_expression
+              (identifier)
+              (identifier))
+            (integer_literal)))))))
+
+================================================================================
+Exists expression
+================================================================================
+
+spec fn has_zero(s: Seq<int>) -> bool {
+    exists |i: int| 0 <= i < s.len() && s[i] == 0
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (generic_type
+          (type_identifier)
+          (type_arguments
+            (primitive_type)))))
+    (primitive_type)
+    (block
+      (exists_expression
+        (closure_parameters
+          (parameter
+            (identifier)
+            (primitive_type)))
+        (binary_expression
+          (binary_expression
+            (binary_expression
+              (integer_literal)
+              (identifier))
+            (call_expression
+              (field_expression
+                (identifier)
+                (field_identifier))
+              (arguments)))
+          (binary_expression
+            (index_expression
+              (identifier)
+              (identifier))
+            (integer_literal)))))))
+
+================================================================================
+Choose expression
+================================================================================
+
+proof fn example(s: Seq<int>) {
+    let w = choose |i: int| 0 <= i < s.len() && s[i] > 10;
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (generic_type
+          (type_identifier)
+          (type_arguments
+            (primitive_type)))))
+    (block
+      (let_declaration
+        (identifier)
+        (choose_expression
+          (closure_parameters
+            (parameter
+              (identifier)
+              (primitive_type)))
+          (binary_expression
+            (binary_expression
+              (binary_expression
+                (integer_literal)
+                (identifier))
+              (call_expression
+                (field_expression
+                  (identifier)
+                  (field_identifier))
+                (arguments)))
+            (binary_expression
+              (index_expression
+                (identifier)
+                (identifier))
+              (integer_literal))))))))
+
+================================================================================
+Implication operator ==>
+================================================================================
+
+spec fn implies_test(a: bool, b: bool) -> bool {
+    a ==> b
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (primitive_type))
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (primitive_type)
+    (block
+      (binary_expression
+        (identifier)
+        (identifier)))))
+
+================================================================================
+Biconditional operator <==>
+================================================================================
+
+spec fn iff_test(a: bool, b: bool) -> bool {
+    a <==> b
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (primitive_type))
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (primitive_type)
+    (block
+      (binary_expression
+        (identifier)
+        (identifier)))))
+
+================================================================================
+Triple equals === and !==
+================================================================================
+
+spec fn eq_test(a: int, b: int) -> bool {
+    a === b && a !== b
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (primitive_type))
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (primitive_type)
+    (block
+      (binary_expression
+        (binary_expression
+          (identifier)
+          (identifier))
+        (binary_expression
+          (identifier)
+          (identifier))))))
+
+================================================================================
+Extensional equality =~= and =~~=
+================================================================================
+
+proof fn ext_eq_test(a: Seq<int>, b: Seq<int>) {
+    assert(a =~= b);
+    assert(a =~~= b);
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (generic_type
+          (type_identifier)
+          (type_arguments
+            (primitive_type))))
+      (parameter
+        (identifier)
+        (generic_type
+          (type_identifier)
+          (type_arguments
+            (primitive_type)))))
+    (block
+      (expression_statement
+        (assert_expression
+          (binary_expression
+            (identifier)
+            (identifier))))
+      (expression_statement
+        (assert_expression
+          (binary_expression
+            (identifier)
+            (identifier)))))))
+
+================================================================================
+While loop with invariant
+================================================================================
+
+fn sum_to(n: u64) -> (s: u64)
+    requires n < 1000,
+    ensures s == n * (n + 1) / 2,
+{
+    let mut s: u64 = 0;
+    let mut i: u64 = 0;
+    while i < n
+        invariant
+            i <= n,
+            s == i * (i + 1) / 2,
+            n < 1000,
+        decreases n - i,
+    {
+        i = i + 1;
+        s = s + i;
+    }
+    s
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (named_return_type
+      (identifier)
+      (primitive_type))
+    (requires_clause
+      (binary_expression
+        (identifier)
+        (integer_literal)))
+    (ensures_clause
+      (binary_expression
+        (identifier)
+        (binary_expression
+          (binary_expression
+            (identifier)
+            (parenthesized_expression
+              (binary_expression
+                (identifier)
+                (integer_literal))))
+          (integer_literal))))
+    (block
+      (let_declaration
+        (mutable_specifier)
+        (identifier)
+        (primitive_type)
+        (integer_literal))
+      (let_declaration
+        (mutable_specifier)
+        (identifier)
+        (primitive_type)
+        (integer_literal))
+      (expression_statement
+        (while_expression
+          (binary_expression
+            (identifier)
+            (identifier))
+          (invariant_clause
+            (binary_expression
+              (identifier)
+              (identifier))
+            (binary_expression
+              (identifier)
+              (binary_expression
+                (binary_expression
+                  (identifier)
+                  (parenthesized_expression
+                    (binary_expression
+                      (identifier)
+                      (integer_literal))))
+                (integer_literal)))
+            (binary_expression
+              (identifier)
+              (integer_literal)))
+          (decreases_clause
+            (binary_expression
+              (identifier)
+              (identifier)))
+          (block
+            (expression_statement
+              (assignment_expression
+                (identifier)
+                (binary_expression
+                  (identifier)
+                  (integer_literal))))
+            (expression_statement
+              (assignment_expression
+                (identifier)
+                (binary_expression
+                  (identifier)
+                  (identifier)))))))
+      (identifier))))
+
+================================================================================
+For loop with invariant
+================================================================================
+
+fn example(v: &Vec<u32>, n: usize) {
+    for k in 0..n
+        invariant n <= v@.len(),
+    {
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (reference_type
+          (generic_type
+            (type_identifier)
+            (type_arguments
+              (primitive_type)))))
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (block
+      (expression_statement
+        (for_expression
+          (identifier)
+          (range_expression
+            (integer_literal)
+            (identifier))
+          (invariant_clause
+            (binary_expression
+              (identifier)
+              (call_expression
+                (field_expression
+                  (view_expression
+                    (identifier))
+                  (field_identifier))
+                (arguments))))
+          (block))))))
+
+================================================================================
+Ghost parameter
+================================================================================
+
+fn example(ghost x: int, tracked y: int) {
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (primitive_type))
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (block)))
+
+================================================================================
+Broadcast use
+================================================================================
+
+broadcast use lemma_seq_push_index;
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (broadcast_use_item
+    (identifier)))
+
+================================================================================
+Broadcast group
+================================================================================
+
+pub broadcast group group_ring_axioms {
+    lemma_add_comm,
+    lemma_mul_comm,
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (broadcast_group
+    (visibility_modifier)
+    (type_identifier)
+    (identifier)
+    (identifier)))
+
+================================================================================
+Verus block
+================================================================================
+
+verus! {
+    spec fn double(x: int) -> int {
+        x + x
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (verus_block
+    (declaration_list
+      (function_item
+        (function_modifiers)
+        (identifier)
+        (parameters
+          (parameter
+            (identifier)
+            (primitive_type)))
+        (primitive_type)
+        (block
+          (binary_expression
+            (identifier)
+            (identifier)))))))
+
+================================================================================
+Chained conjunction &&&
+================================================================================
+
+spec fn multi_cond(x: int, y: int) -> bool {
+    &&& x > 0
+    &&& y > 0
+    &&& x + y > 0
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (primitive_type))
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (primitive_type)
+    (block
+      (chained_conjunction
+        (binary_expression
+          (identifier)
+          (integer_literal))
+        (binary_expression
+          (identifier)
+          (integer_literal))
+        (binary_expression
+          (binary_expression
+            (identifier)
+            (identifier))
+          (integer_literal))))))
+
+================================================================================
+Chained disjunction |||
+================================================================================
+
+spec fn any_cond(x: int) -> bool {
+    ||| x == 0
+    ||| x == 1
+    ||| x == 2
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (primitive_type)
+    (block
+      (chained_disjunction
+        (binary_expression
+          (identifier)
+          (integer_literal))
+        (binary_expression
+          (identifier)
+          (integer_literal))
+        (binary_expression
+          (identifier)
+          (integer_literal))))))
+
+================================================================================
+Attributed expression #[trigger]
+================================================================================
+
+proof fn trigger_test(s: Seq<int>) {
+    assert forall |i: int| 0 <= i < s.len() implies #[trigger] s[i] > 0
+    by {
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (generic_type
+          (type_identifier)
+          (type_arguments
+            (primitive_type)))))
+    (block
+      (expression_statement
+        (assert_expression
+          (closure_parameters
+            (parameter
+              (identifier)
+              (primitive_type)))
+          (binary_expression
+            (binary_expression
+              (binary_expression
+                (integer_literal)
+                (identifier))
+              (call_expression
+                (field_expression
+                  (identifier)
+                  (field_identifier))
+                (arguments)))
+            (attributed_expression
+              (attribute_item
+                (attribute
+                  (identifier)))
+              (binary_expression
+                (index_expression
+                  (identifier)
+                  (identifier))
+                (integer_literal))))
+          (block))))))
+
+================================================================================
+Ghost bool capture pattern
+================================================================================
+
+fn example(a: int, b: int) {
+    let ghost eq: bool = a == b;
+    proof {
+        assert(eq);
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (primitive_type))
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (block
+      (let_declaration
+        (identifier)
+        (primitive_type)
+        (binary_expression
+          (identifier)
+          (identifier)))
+      (expression_statement
+        (proof_block
+          (block
+            (expression_statement
+              (assert_expression
+                (identifier)))))))))
+
+================================================================================
+Recommends clause
+================================================================================
+
+spec fn div_spec(x: int, y: int) -> int
+    recommends y != 0,
+{
+    x / y
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (primitive_type))
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (primitive_type)
+    (recommends_clause
+      (binary_expression
+        (identifier)
+        (integer_literal)))
+    (block
+      (binary_expression
+        (identifier)
+        (identifier)))))
+
+================================================================================
+Broadcast proof function
+================================================================================
+
+broadcast proof fn lemma_seq_len(s: Seq<int>)
+    ensures s.len() >= 0,
+{
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (generic_type
+          (type_identifier)
+          (type_arguments
+            (primitive_type)))))
+    (ensures_clause
+      (binary_expression
+        (call_expression
+          (field_expression
+            (identifier)
+            (field_identifier))
+          (arguments))
+        (integer_literal)))
+    (block)))
+
+================================================================================
+View expression in ensures
+================================================================================
+
+fn push_val(v: &mut Vec<u32>, x: u32)
+    ensures
+        v@.len() == old(v)@.len() + 1,
+{
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (reference_type
+          (mutable_specifier)
+          (generic_type
+            (type_identifier)
+            (type_arguments
+              (primitive_type)))))
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (ensures_clause
+      (binary_expression
+        (call_expression
+          (field_expression
+            (view_expression
+              (identifier))
+            (field_identifier))
+          (arguments))
+        (binary_expression
+          (call_expression
+            (field_expression
+              (view_expression
+                (call_expression
+                  (identifier)
+                  (arguments
+                    (identifier))))
+              (field_identifier))
+            (arguments))
+          (integer_literal))))
+    (block)))
+
+================================================================================
+Proof block with assert forall by
+================================================================================
+
+fn example(out: &Vec<u32>, n: usize) {
+    proof {
+        assert forall |j: int| 0 <= j < n implies
+            0 <= (#[trigger] out@[j]).sem() < 100
+        by {
+        }
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (reference_type
+          (generic_type
+            (type_identifier)
+            (type_arguments
+              (primitive_type)))))
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (block
+      (expression_statement
+        (proof_block
+          (block
+            (expression_statement
+              (assert_expression
+                (closure_parameters
+                  (parameter
+                    (identifier)
+                    (primitive_type)))
+                (binary_expression
+                  (binary_expression
+                    (binary_expression
+                      (integer_literal)
+                      (identifier))
+                    (identifier))
+                  (binary_expression
+                    (binary_expression
+                      (integer_literal)
+                      (call_expression
+                        (field_expression
+                          (parenthesized_expression
+                            (attribute_item
+                              (attribute
+                                (identifier)))
+                            (index_expression
+                              (view_expression
+                                (identifier))
+                              (identifier)))
+                          (field_identifier))
+                        (arguments)))
+                    (integer_literal)))
+                (block)))))))))
+
+================================================================================
+Turbofish generic call in proof
+================================================================================
+
+fn example() {
+    proof {
+        lemma_vec_val_bounded::<T>(seq);
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (expression_statement
+        (proof_block
+          (block
+            (expression_statement
+              (call_expression
+                (generic_function
+                  (identifier)
+                  (type_arguments
+                    (type_identifier)))
+                (arguments
+                  (identifier))))))))))
+
+================================================================================
+Deref and reref pattern &*
+================================================================================
+
+fn example(v: &mut Vec<u32>) {
+    foo(&*v, 0);
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (reference_type
+          (mutable_specifier)
+          (generic_type
+            (type_identifier)
+            (type_arguments
+              (primitive_type))))))
+    (block
+      (expression_statement
+        (call_expression
+          (identifier)
+          (arguments
+            (reference_expression
+              (unary_expression
+                (identifier)))
+            (integer_literal)))))))
+
+================================================================================
+Ghost wrapper call
+================================================================================
+
+fn example(x: int) {
+    helper(Ghost(x), Ghost(42));
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (block
+      (expression_statement
+        (call_expression
+          (identifier)
+          (arguments
+            (call_expression
+              (identifier)
+              (arguments
+                (identifier)))
+            (call_expression
+              (identifier)
+              (arguments
+                (integer_literal)))))))))
+
+================================================================================
+Cross-module function call
+================================================================================
+
+fn example() {
+    crate::module::submodule::my_function(a, b, c);
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (expression_statement
+        (call_expression
+          (scoped_identifier
+            (scoped_identifier
+              (scoped_identifier
+                (crate)
+                (identifier))
+              (identifier))
+            (identifier))
+          (arguments
+            (identifier)
+            (identifier)
+            (identifier)))))))
+
+================================================================================
+Invariant_except_break
+================================================================================
+
+fn example() {
+    loop
+        invariant_except_break x > 0,
+    {
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (expression_statement
+        (loop_expression
+          (invariant_clause
+            (binary_expression
+              (identifier)
+              (integer_literal)))
+          (block))))))
+
+================================================================================
+Assert with method name
+================================================================================
+
+fn example(x: u32) {
+    assert(x > 0) by (compute);
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (block
+      (expression_statement
+        (assert_expression
+          (binary_expression
+            (identifier)
+            (integer_literal))
+          (identifier))))))
+
+================================================================================
+Multiple spec clauses
+================================================================================
+
+fn complex(x: u32, y: u32) -> (r: u32)
+    requires
+        x < 100,
+        y < 100,
+    ensures
+        r <= x + y,
+    decreases x,
+{
+    x + y
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (primitive_type))
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (named_return_type
+      (identifier)
+      (primitive_type))
+    (requires_clause
+      (binary_expression
+        (identifier)
+        (integer_literal))
+      (binary_expression
+        (identifier)
+        (integer_literal)))
+    (ensures_clause
+      (binary_expression
+        (identifier)
+        (binary_expression
+          (identifier)
+          (identifier))))
+    (decreases_clause
+      (identifier))
+    (block
+      (binary_expression
+        (identifier)
+        (identifier)))))
+
+================================================================================
+Implies keyword
+================================================================================
+
+spec fn implies_kw(a: bool, b: bool) -> bool {
+    a implies b
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (primitive_type))
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (primitive_type)
+    (block
+      (binary_expression
+        (identifier)
+        (identifier)))))
+
+================================================================================
+Complex proof block with ghost lets and view
+================================================================================
+
+fn karatsuba_step(
+    a: &[u32],
+    out: &mut Vec<u32>,
+    scratch: &mut Vec<u32>,
+    n: usize,
+) {
+    let ghost a_seq = a@.subrange(0, n as int);
+    let ghost out_snap = out@;
+    proof {
+        assert(out@.len() >= 2 * n);
+    }
+    let ghost eq: bool = out@.len() == scratch@.len();
+    proof {
+        assert(eq);
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (reference_type
+          (array_type
+            (primitive_type))))
+      (parameter
+        (identifier)
+        (reference_type
+          (mutable_specifier)
+          (generic_type
+            (type_identifier)
+            (type_arguments
+              (primitive_type)))))
+      (parameter
+        (identifier)
+        (reference_type
+          (mutable_specifier)
+          (generic_type
+            (type_identifier)
+            (type_arguments
+              (primitive_type)))))
+      (parameter
+        (identifier)
+        (primitive_type)))
+    (block
+      (let_declaration
+        (identifier)
+        (call_expression
+          (field_expression
+            (view_expression
+              (identifier))
+            (field_identifier))
+          (arguments
+            (integer_literal)
+            (type_cast_expression
+              (identifier)
+              (primitive_type)))))
+      (let_declaration
+        (identifier)
+        (view_expression
+          (identifier)))
+      (expression_statement
+        (proof_block
+          (block
+            (expression_statement
+              (assert_expression
+                (binary_expression
+                  (call_expression
+                    (field_expression
+                      (view_expression
+                        (identifier))
+                      (field_identifier))
+                    (arguments))
+                  (binary_expression
+                    (integer_literal)
+                    (identifier))))))))
+      (let_declaration
+        (identifier)
+        (primitive_type)
+        (binary_expression
+          (call_expression
+            (field_expression
+              (view_expression
+                (identifier))
+              (field_identifier))
+            (arguments))
+          (call_expression
+            (field_expression
+              (view_expression
+                (identifier))
+              (field_identifier))
+            (arguments))))
+      (expression_statement
+        (proof_block
+          (block
+            (expression_statement
+              (assert_expression
+                (identifier)))))))))

@@ -130,6 +130,10 @@
         "named": true
       },
       {
+        "type": "attributed_expression",
+        "named": true
+      },
+      {
         "type": "await_expression",
         "named": true
       },
@@ -147,6 +151,14 @@
       },
       {
         "type": "call_expression",
+        "named": true
+      },
+      {
+        "type": "chained_conjunction",
+        "named": true
+      },
+      {
+        "type": "chained_disjunction",
         "named": true
       },
       {
@@ -279,6 +291,10 @@
       },
       {
         "type": "unsafe_block",
+        "named": true
+      },
+      {
+        "type": "view_expression",
         "named": true
       },
       {
@@ -688,11 +704,35 @@
       }
     },
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": false,
       "types": [
         {
-          "type": "requires_clause",
+          "type": "_literal",
+          "named": true
+        },
+        {
+          "type": "crate",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "mutable_specifier",
+          "named": true
+        },
+        {
+          "type": "primitive_type",
+          "named": true
+        },
+        {
+          "type": "self",
+          "named": true
+        },
+        {
+          "type": "super",
           "named": true
         }
       ]
@@ -873,6 +913,32 @@
     }
   },
   {
+    "type": "attributed_expression",
+    "named": true,
+    "fields": {
+      "expression": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "_expression",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "attribute_item",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "await_expression",
     "named": true,
     "fields": {},
@@ -966,6 +1032,10 @@
           },
           {
             "type": "<=",
+            "named": false
+          },
+          {
+            "type": "<==>",
             "named": false
           },
           {
@@ -1288,6 +1358,10 @@
             "named": true
           },
           {
+            "type": "attributed_expression",
+            "named": true
+          },
+          {
             "type": "await_expression",
             "named": true
           },
@@ -1305,6 +1379,14 @@
           },
           {
             "type": "call_expression",
+            "named": true
+          },
+          {
+            "type": "chained_conjunction",
+            "named": true
+          },
+          {
+            "type": "chained_disjunction",
             "named": true
           },
           {
@@ -1436,6 +1518,10 @@
             "named": true
           },
           {
+            "type": "view_expression",
+            "named": true
+          },
+          {
             "type": "while_expression",
             "named": true
           },
@@ -1457,6 +1543,36 @@
       "types": [
         {
           "type": "_pattern",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "chained_conjunction",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "chained_disjunction",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_expression",
           "named": true
         }
       ]
@@ -5385,6 +5501,22 @@
         "types": [
           {
             "type": "declaration_list",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "view_expression",
+    "named": true,
+    "fields": {
+      "value": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "_expression",
             "named": true
           }
         ]

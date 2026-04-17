@@ -102,6 +102,7 @@ module.exports = grammar({
     $._declaration_statement,
     $._reserved_identifier,
     $._expression_ending_with_block,
+    // Note: _expression_except_range is NOT inlined so it can participate in GLR conflict declarations.
   ],
 
   conflicts: $ => [
@@ -131,6 +132,16 @@ module.exports = grammar({
     [$.assert_expression, $._assert_by_expression],
     // assert(P) by(solver) • requires — part of this assert or next clause?
     [$._assert_by_expression],
+    // #[trigger] expr vs #[attr] fn decl
+    [$.binary_expression, $.attributed_expression],
+    [$._statement, $.function_item, $.attributed_expression],
+    // &&& / ||| chained operators vs &= / |= compound assignment and & / | binary
+    [$.compound_assignment_expr, $.chained_conjunction],
+    [$.compound_assignment_expr, $.chained_disjunction],
+    [$.assignment_expression, $.chained_conjunction],
+    [$.assignment_expression, $.chained_disjunction],
+    [$.binary_expression, $.chained_conjunction],
+    [$.binary_expression, $.chained_disjunction],
   ],
 
   word: $ => $.identifier,
@@ -652,9 +663,9 @@ module.exports = grammar({
     )),
 
     let_declaration: $ => seq(
-      // Verus: ghost/tracked qualifier before let
-      optional(choice('ghost', 'tracked')),
       'let',
+      // Verus: ghost/tracked qualifier after let (e.g., `let ghost x = ...;`)
+      optional(choice('ghost', 'tracked')),
       optional($.mutable_specifier),
       field('pattern', $._pattern),
       optional(seq(
@@ -1077,6 +1088,13 @@ module.exports = grammar({
       $.forall_expression,
       $.exists_expression,
       $.choose_expression,
+      // Verus: expr@ view operator
+      $.view_expression,
+      // Verus: #[trigger] expr, #[via f] expr
+      $.attributed_expression,
+      // Verus: &&& / ||| prefix chaining operators
+      $.chained_conjunction,
+      $.chained_disjunction,
     ),
 
     _expression: $ => choice(
@@ -1215,7 +1233,7 @@ module.exports = grammar({
         // Verus: right-associative implication operators
         prec.right(PREC.implies, seq(
           field('left', $._expression),
-          field('operator', choice('==>', 'implies')),
+          field('operator', choice('==>', 'implies', '<==>')),
           field('right', $._expression),
         )),
       );
@@ -1566,6 +1584,7 @@ module.exports = grammar({
     )),
 
     // assert(cond) by { proof }
+    // assert(cond) by(solver) [requires R] [{ body }]
     // assert forall|params| [hyp implies] cond by { proof }
     // Block-ending variants (no ; needed in expression_statement)
     _assert_by_expression: $ => prec(2, seq(
@@ -1586,22 +1605,35 @@ module.exports = grammar({
       choice(
         // by { proof_body }
         field('proof', $.block),
-        // by(solver) requires R { body }
+        // by(solver) [requires R] [{ body }]
+        // requires content parsed as opaque tokens to avoid expression boundary conflicts
         seq(
           '(',
           field('solver', $.identifier),
           ')',
-          $.requires_clause,
-          field('proof', $.block),
-        ),
-        // by(solver) — no body, no requires (semicolon-terminated)
-        seq(
-          '(',
-          field('solver', $.identifier),
-          ')',
+          optional($._assert_by_requires),
+          optional(field('proof', $.block)),
         ),
       ),
     )),
+
+    // Opaque requires content for assert-by expressions.
+    // Parsed as balanced tokens rather than structured expressions to avoid
+    // cascading expression boundary conflicts with optional requires clauses.
+    // The transpiler skips all assert/proof constructs anyway.
+    _assert_by_requires: $ => prec.right(seq(
+      'requires',
+      repeat1($._assert_by_requires_token),
+    )),
+
+    _assert_by_requires_token: $ => choice(
+      // Balanced parentheses
+      seq('(', repeat($._assert_by_requires_token), ')'),
+      // Balanced brackets
+      seq('[', repeat($._assert_by_requires_token), ']'),
+      // Any non-delimiter, non-brace, non-semicolon token (includes ',')
+      $._non_special_token,
+    ),
 
     // assume(cond)
     assume_expression: $ => prec(2, seq(
@@ -1609,6 +1641,29 @@ module.exports = grammar({
       '(',
       field('condition', $._expression),
       ')',
+    )),
+
+    // Verus: expr@ — view operator (converts runtime to spec type)
+    view_expression: $ => prec(PREC.field, seq(
+      field('value', $._expression),
+      '@',
+    )),
+
+    // Verus: &&& a &&& b &&& c — chained conjunction (prefix form)
+    chained_conjunction: $ => prec.left(PREC.and, repeat1(
+      seq('&&&', prec(PREC.and + 1, $._expression)),
+    )),
+
+    // Verus: ||| a ||| b ||| c — chained disjunction (prefix form)
+    chained_disjunction: $ => prec.left(PREC.or, repeat1(
+      seq('|||', prec(PREC.or + 1, $._expression)),
+    )),
+
+    // Verus: #[trigger] expr, #[via f] expr — expression-level attributes
+    // Low precedence so #[attr] before declarations (fn, struct, etc.) wins.
+    attributed_expression: $ => prec(-1, seq(
+      repeat1($.attribute_item),
+      field('expression', $._expression),
     )),
 
     // Section - Patterns
