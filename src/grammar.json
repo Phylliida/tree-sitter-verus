@@ -1057,6 +1057,26 @@
                 {
                   "type": "STRING",
                   "value": "==>"
+                },
+                {
+                  "type": "STRING",
+                  "value": "<==>"
+                },
+                {
+                  "type": "STRING",
+                  "value": "=~="
+                },
+                {
+                  "type": "STRING",
+                  "value": "=~~="
+                },
+                {
+                  "type": "STRING",
+                  "value": "&&&"
+                },
+                {
+                  "type": "STRING",
+                  "value": "|||"
                 }
               ]
             }
@@ -6899,6 +6919,14 @@
                     {
                       "type": "STRING",
                       "value": "!=="
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "=~="
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "=~~="
                     }
                   ]
                 }
@@ -9174,12 +9202,71 @@
             "value": "by"
           },
           {
-            "type": "FIELD",
-            "name": "proof",
-            "content": {
-              "type": "SYMBOL",
-              "name": "block"
-            }
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "FIELD",
+                "name": "proof",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "block"
+                }
+              },
+              {
+                "type": "SEQ",
+                "members": [
+                  {
+                    "type": "STRING",
+                    "value": "("
+                  },
+                  {
+                    "type": "FIELD",
+                    "name": "solver",
+                    "content": {
+                      "type": "SYMBOL",
+                      "name": "identifier"
+                    }
+                  },
+                  {
+                    "type": "STRING",
+                    "value": ")"
+                  },
+                  {
+                    "type": "SYMBOL",
+                    "name": "requires_clause"
+                  },
+                  {
+                    "type": "FIELD",
+                    "name": "proof",
+                    "content": {
+                      "type": "SYMBOL",
+                      "name": "block"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "SEQ",
+                "members": [
+                  {
+                    "type": "STRING",
+                    "value": "("
+                  },
+                  {
+                    "type": "FIELD",
+                    "name": "solver",
+                    "content": {
+                      "type": "SYMBOL",
+                      "name": "identifier"
+                    }
+                  },
+                  {
+                    "type": "STRING",
+                    "value": ")"
+                  }
+                ]
+              }
+            ]
           }
         ]
       }
@@ -10879,6 +10966,9 @@
     ],
     [
       "assert_expression",
+      "_assert_by_expression"
+    ],
+    [
       "_assert_by_expression"
     ]
   ],

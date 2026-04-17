@@ -57,7 +57,7 @@ const TOKEN_TREE_NON_SPECIAL_PUNCTUATION = [
   '>>=', '=', '==', '!=', '>', '<', '>=', '<=', '@', '_', '.',
   '..', '...', '..=', ',', ';', ':', '::', '->', '=>', '#', '?',
   // Verus operators
-  '===', '!==', '==>',
+  '===', '!==', '==>', '<==>', '=~=', '=~~=', '&&&', '|||',
 ];
 
 const primitiveTypes = numericTypes.concat(['bool', 'str', 'char']);
@@ -129,6 +129,8 @@ module.exports = grammar({
     [$.declaration_list, $.function_item],
     // assert(expr)/forall shared prefix between block and non-block variants
     [$.assert_expression, $._assert_by_expression],
+    // assert(P) by(solver) • requires — part of this assert or next clause?
+    [$._assert_by_expression],
   ],
 
   word: $ => $.identifier,
@@ -1196,7 +1198,7 @@ module.exports = grammar({
         [PREC.bitand, '&'],
         [PREC.bitor, '|'],
         [PREC.bitxor, '^'],
-        [PREC.comparative, choice('==', '!=', '<', '<=', '>', '>=', '===', '!==')],
+        [PREC.comparative, choice('==', '!=', '<', '<=', '>', '>=', '===', '!==', '=~=', '=~~=')],
         [PREC.shift, choice('<<', '>>')],
         [PREC.additive, choice('+', '-')],
         [PREC.multiplicative, choice('*', '/', '%')],
@@ -1581,7 +1583,24 @@ module.exports = grammar({
         ),
       ),
       'by',
-      field('proof', $.block),
+      choice(
+        // by { proof_body }
+        field('proof', $.block),
+        // by(solver) requires R { body }
+        seq(
+          '(',
+          field('solver', $.identifier),
+          ')',
+          $.requires_clause,
+          field('proof', $.block),
+        ),
+        // by(solver) — no body, no requires (semicolon-terminated)
+        seq(
+          '(',
+          field('solver', $.identifier),
+          ')',
+        ),
+      ),
     )),
 
     // assume(cond)
